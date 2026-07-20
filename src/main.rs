@@ -1,14 +1,17 @@
 use rand::Rng;
 fn main() {
     println!("Algoritmos de ordenamiento");
-    let mut numeros = numeros_aleatorios(10);
-    let mut numeros2=numeros.clone();
-    println!("Números generados aleatoriamente : {:?}", numeros);
+    let  numeros_originales = numeros_aleatorios(10);
+    println!("Números generados aleatoriamente : {:?}", numeros_originales);
     //let mut num=vec![5, 3, 8, 4, 2];
     //num.swap(0, 0);
-    bubble_sort( &mut numeros);
-    selection_sort(&mut numeros2);
-    println!("{:?}", numeros);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
+    bubble_sort( &mut numeros_para_procesar);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
+    selection_sort(&mut numeros_para_procesar);
+    println!("{:?}", numeros_para_procesar);
 
 }
 
