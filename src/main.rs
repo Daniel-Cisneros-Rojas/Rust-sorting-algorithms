@@ -11,6 +11,10 @@ fn main() {
 
     let mut numeros_para_procesar=numeros_originales.clone();
     selection_sort(&mut numeros_para_procesar);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
+    insertion_sort(&mut numeros_para_procesar);
+
     println!("{:?}", numeros_para_procesar);
 
 }
@@ -52,5 +56,22 @@ fn selection_sort<T: Ord + std::fmt::Debug>(datos: &mut[T]){
         }
         datos.swap(i, index_menor_numero);
         println!("{:?} vuelta {}", datos, i);
+    }
+}
+
+fn insertion_sort<T: Ord + std::fmt::Debug>(datos: &mut[T]){
+    println!("Algoritmo ordenamiento inserción\n");
+    let tam= datos.len();
+    for i in 1..tam{
+       for j in (0..i).rev(){
+           println!("{:?} dato analizado {:?} comparado contra {:?}", datos, datos[j+1], datos[j]);
+           if datos[j+1]<datos[j]{
+            datos.swap(j+1, j);
+           }else{
+            break;
+           }
+           
+       }
+       
     }
 }
