@@ -1,7 +1,7 @@
 use rand::Rng;
 fn main() {
     println!("Algoritmos de ordenamiento");
-    let  numeros_originales = numeros_aleatorios(10);
+    let  numeros_originales = numeros_aleatorios(8);
     println!("Números generados aleatoriamente : {:?}", numeros_originales);
     //let mut num=vec![5, 3, 8, 4, 2];
     //num.swap(0, 0);
@@ -14,6 +14,10 @@ fn main() {
 
     let mut numeros_para_procesar=numeros_originales.clone();
     insertion_sort(&mut numeros_para_procesar);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
+    println!("Algoritmo ordenamiento por mezcla (Merge sort)\n");
+    merge_sort(&mut numeros_para_procesar);
 
     println!("{:?}", numeros_para_procesar);
 
@@ -74,4 +78,52 @@ fn insertion_sort<T: Ord + std::fmt::Debug>(datos: &mut[T]){
        }
        
     }
+}
+
+fn merge_sort<T: Ord + std::fmt::Debug+ std::clone::Clone>(datos: &mut[T]){
+    
+    let tam=datos.len();
+    
+    if tam<=1{
+        return;
+    }
+        let mitad=tam/2;
+        
+        merge_sort(&mut datos[..mitad]);
+        merge_sort(&mut datos[mitad..]);
+        
+        merge(datos,mitad);
+
+}
+
+fn merge<T: Ord + std::fmt::Debug+ std::clone::Clone>(datos: &mut[T],mitad:usize){
+    let (mut i,mut j,mut k)=(0,0,0);
+    let izquierda=datos[..mitad].to_vec();
+    let derecha=datos[mitad..].to_vec();
+    println!("datos a ordenar {:?}", datos);
+    while i<izquierda.len() && j<derecha.len()
+    {
+        if izquierda[i]<=derecha[j]
+        {
+            datos[k]=izquierda[i].clone();
+            i+=1;
+        }else{
+            datos[k]=derecha[j].clone();
+            j+=1;
+        }
+        k+=1;
+    }
+
+    while i<izquierda.len(){
+        datos[k]=izquierda[i].clone();
+        i+=1;
+        k+=1;
+    }
+    while j<derecha.len(){
+        datos[k]=derecha[j].clone();
+        j+=1;
+        k+=1;
+    }
+
+    println!("datos ordenados {:?}", datos);
 }
