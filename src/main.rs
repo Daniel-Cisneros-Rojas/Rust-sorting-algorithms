@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{Rng};
 fn main() {
     println!("Algoritmos de ordenamiento");
     let  numeros_originales = numeros_aleatorios(8);
@@ -19,7 +19,13 @@ fn main() {
     println!("Algoritmo ordenamiento por mezcla (Merge sort)\n");
     merge_sort(&mut numeros_para_procesar);
 
-    println!("{:?}", numeros_para_procesar);
+    let mut numeros_para_procesar=numeros_originales.clone();
+    
+    println!("Algoritmo ordenamiento Quick sort\n");
+    quick_sort(&mut numeros_para_procesar);
+    println!("Datos ordenados {:?}", numeros_para_procesar);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
 
 }
 
@@ -126,4 +132,38 @@ fn merge<T: Ord + std::fmt::Debug+ std::clone::Clone>(datos: &mut[T],mitad:usize
     }
 
     println!("datos ordenados {:?}", datos);
+}
+
+fn quick_sort<T: Ord+ std::fmt::Debug>(datos: &mut [T]) {
+    let len = datos.len();
+    if len <= 1 {
+        return;
+    }
+
+    let pivote_index = partition(datos);
+
+    let (left, right) = datos.split_at_mut(pivote_index);
+    
+ 
+    quick_sort(left);
+    
+    quick_sort(&mut right[1..]);
+}
+
+fn partition<T: Ord + std::fmt::Debug>(datos: &mut [T]) -> usize {
+    let len = datos.len();
+    let pivote_index = len - 1; 
+    let mut i = 0;
+    println!("pivote {:?}", datos[pivote_index]);
+    for j in 0..pivote_index {
+        
+        if datos[j] <= datos[pivote_index] {
+            datos.swap(i, j);
+            i += 1;
+        }
+    }
+
+    datos.swap(i, pivote_index);
+    println!("datos {:?}", datos);
+    i
 }
