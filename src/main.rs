@@ -26,6 +26,7 @@ fn main() {
     println!("Datos ordenados {:?}", numeros_para_procesar);
 
     let mut numeros_para_procesar=numeros_originales.clone();
+    heap_sort(&mut numeros_para_procesar);
 
 }
 
@@ -166,4 +167,46 @@ fn partition<T: Ord + std::fmt::Debug>(datos: &mut [T]) -> usize {
     datos.swap(i, pivote_index);
     println!("datos {:?}", datos);
     i
+}
+
+fn heap_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
+    println!("Algoritmo Heap sort\n");
+   let len = datos.len();
+    if len <= 1 {
+        return;
+    }
+ 
+    for i in (0..len / 2).rev() {
+        heapify(datos, len, i);
+        println!("Datos {:?}", datos);
+    }
+
+    for i in (1..len).rev() {
+        
+        datos.swap(0, i);
+        
+        heapify(datos, i, 0);
+    }
+    println!("Datos ordenados {:?}", datos);
+}
+
+fn heapify<T: Ord>(datos: &mut [T], n: usize, i: usize) {
+    let mut mayor = i;       // Inicializar el más grande como la raíz
+    let hijo_izquierdo = 2 * i + 1;      
+    let hijo_derecho = 2 * i + 2;     
+
+  
+    if hijo_izquierdo < n && datos[hijo_izquierdo] > datos[mayor] {
+        mayor = hijo_izquierdo;
+    }
+
+    if hijo_derecho < n && datos[hijo_derecho] > datos[mayor] {
+        mayor = hijo_derecho;
+    }
+
+    
+    if mayor != i {
+        datos.swap(i, mayor);
+        heapify(datos, n, mayor);
+    }
 }
