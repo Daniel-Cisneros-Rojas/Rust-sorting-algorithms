@@ -1,10 +1,10 @@
 use rand::{Rng};
 fn main() {
     println!("Algoritmos de ordenamiento");
-    let  numeros_originales = numeros_aleatorios(8);
+    //let  numeros_originales = numeros_aleatorios(8);
+    let numeros_originales=vec![5, 3, 8, 4, 2,-1];
     println!("Números generados aleatoriamente : {:?}", numeros_originales);
-    //let mut num=vec![5, 3, 8, 4, 2];
-    //num.swap(0, 0);
+    
 
     let mut numeros_para_procesar=numeros_originales.clone();
     bubble_sort( &mut numeros_para_procesar);
@@ -218,9 +218,44 @@ fn heapify<T: Ord>(datos: &mut [T], n: usize, i: usize) {
 }
 
 
-fn counting_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
+fn counting_sort(datos: &mut [i32]){
+    let tam=datos.len();
    println!("Algoritmo ordenamiento por conteo\n");
+   let (indice_maximo,indice_minimo)=maximo_minimo(datos);
+   println!("minimo {:?} maximo {:?}", datos[indice_minimo], datos[indice_maximo]);
+   let mut conteo=vec![0; (datos[indice_maximo] - datos[indice_minimo] + 1)as usize];
+
+   for i in 0..tam{
+         let indice=(datos[i]-datos[indice_minimo]) as usize;
+          conteo[indice]+=1;
+   }
+   println!("conteo {:?} ", conteo);
+   
+   let mut k=0;
+   let numero_minimo=datos[indice_minimo];
+   for i in 0..conteo.len(){
+       for _ in 0..conteo[i]{
+          datos[k]=i as i32 + numero_minimo;
+          k+=1;
+       }
+   }
+   println!("Datos ordenados {:?} ", datos);
 }
+
+fn maximo_minimo(datos: &mut [i32])->(usize,usize){
+    let mut maximo=0;
+    let mut minimo=0;
+    for i in 0..datos.len(){
+        if datos[i]>datos[maximo]{
+            maximo=i;
+        }
+        if datos[i]<datos[minimo]{
+            minimo=i;
+        }
+    }
+    return (maximo,minimo);
+}
+
 
 fn radix_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
     println!("Algoritmo ordenamiento por digitos\n");
