@@ -28,6 +28,12 @@ fn main() {
     let mut numeros_para_procesar=numeros_originales.clone();
     heap_sort(&mut numeros_para_procesar);
 
+    let mut numeros_para_procesar=numeros_originales.clone();
+    counting_sort(&mut numeros_para_procesar);
+
+    let mut numeros_para_procesar=numeros_originales.clone();
+    radix_sort(&mut numeros_para_procesar);
+
 }
 
 fn numeros_aleatorios(tam:i32)-> Vec<i32> {
@@ -209,4 +215,13 @@ fn heapify<T: Ord>(datos: &mut [T], n: usize, i: usize) {
         datos.swap(i, mayor);
         heapify(datos, n, mayor);
     }
+}
+
+fn counting_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
+   println!("Algoritmo ordenamiento por conteo\n");
+}
+
+fn radix_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
+    println!("Algoritmo ordenamiento por digitos\n");
+
 }
