@@ -217,6 +217,7 @@ fn heapify<T: Ord>(datos: &mut [T], n: usize, i: usize) {
     }
 }
 
+
 fn counting_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
    println!("Algoritmo ordenamiento por conteo\n");
 }
