@@ -1,8 +1,8 @@
 use rand::{Rng};
 fn main() {
     println!("Algoritmos de ordenamiento");
-    //let  numeros_originales = numeros_aleatorios(8);
-    let numeros_originales=vec![5, 3, 8, 4, 2,-1];
+    let  numeros_originales = numeros_aleatorios(8);
+    //let numeros_originales=vec![5, 3, 8, 4, 2,-1];
     println!("Números generados aleatoriamente : {:?}", numeros_originales);
     
 
@@ -257,7 +257,56 @@ fn maximo_minimo(datos: &mut [i32])->(usize,usize){
 }
 
 
-fn radix_sort<T: Ord + std::fmt::Debug>(datos: &mut [T]){
+fn radix_sort(datos: &mut [i32]){
     println!("Algoritmo ordenamiento por digitos\n");
+    if datos.len() <= 1 {
+        return;
+    }
 
+    let mut maximo = datos[0];
+    for &valor in datos.iter().skip(1) {
+        if valor > maximo {
+            maximo = valor;
+        }
+        if valor<0{
+            println!("Algoritmo solo para numeros positivos");
+            return;
+        }
+    }
+
+    let mut exp = 1;
+
+    while maximo / exp > 0 {
+        counting_sort_por_digito(datos, exp);
+        exp *= 10;
+        println!("Datos {:?}", datos);
+    }
+    println!("Datos ordenados {:?}", datos);
+}
+
+fn counting_sort_por_digito(datos: &mut [i32], exp: i32) {
+    let n = datos.len();
+
+    let mut salida = vec![0; n];
+
+    let mut conteo = vec![0; 10];
+
+    for &numero in datos.iter() {
+        let digito = ((numero / exp) % 10) as usize;
+        conteo[digito] += 1;
+    }
+
+    for i in 1..10 {
+        conteo[i] += conteo[i - 1];
+    }
+
+    for i in (0..n).rev() {
+        let digito = ((datos[i] / exp) % 10) as usize;
+        conteo[digito] -= 1;
+        let posicion = conteo[digito];
+        salida[posicion] = datos[i];
+    }
+
+  
+    datos.copy_from_slice(&salida);
 }
