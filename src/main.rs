@@ -1,37 +1,70 @@
 use rand::{Rng};
+use std::time::Duration;
+use std::time::Instant;
+struct Estadisticas {
+    nombre: String,
+    tiempo: Duration,
+    comparaciones: usize,
+    intercambios: usize,
+}
 fn main() {
-    println!("Algoritmos de ordenamiento");
+
+    let mut stats = Estadisticas {
+        nombre: " ".to_string(),
+        tiempo: Duration::ZERO,
+        comparaciones: 0,
+        intercambios: 0,
+        
+    };
+
+    println!("\nAlgoritmos de ordenamiento");
     let  numeros_originales = numeros_aleatorios(8);
     //let numeros_originales=vec![5, 3, 8, 4, 2,-1];
-    println!("Números generados aleatoriamente : {:?}", numeros_originales);
+    println!("\nNúmeros generados aleatoriamente : {:?}\n", numeros_originales);
     
-
+    //bubble sort
     let mut numeros_para_procesar=numeros_originales.clone();
-    bubble_sort( &mut numeros_para_procesar);
+    let inicio = Instant::now();
+    bubble_sort( &mut numeros_para_procesar,&mut stats);
+    stats.tiempo = inicio.elapsed();
+    imprimir_stats(&mut stats);
 
+    //selection sort 
     let mut numeros_para_procesar=numeros_originales.clone();
+    let inicio = Instant::now();
     selection_sort(&mut numeros_para_procesar);
 
+    //insertion sort
     let mut numeros_para_procesar=numeros_originales.clone();
+    let inicio = Instant::now();
     insertion_sort(&mut numeros_para_procesar);
 
+    //merge sort
     let mut numeros_para_procesar=numeros_originales.clone();
     println!("Algoritmo ordenamiento por mezcla (Merge sort)\n");
+    let inicio = Instant::now();
     merge_sort(&mut numeros_para_procesar);
 
-    let mut numeros_para_procesar=numeros_originales.clone();
-    
+    //quick sort
+    let mut numeros_para_procesar=numeros_originales.clone(); 
     println!("Algoritmo ordenamiento Quick sort\n");
+    let inicio = Instant::now();
     quick_sort(&mut numeros_para_procesar);
     println!("Datos ordenados {:?}", numeros_para_procesar);
 
+    //heap sort
     let mut numeros_para_procesar=numeros_originales.clone();
+    let inicio = Instant::now();
     heap_sort(&mut numeros_para_procesar);
 
+    //counting sort
     let mut numeros_para_procesar=numeros_originales.clone();
+    let inicio = Instant::now();
     counting_sort(&mut numeros_para_procesar);
 
+    //radix sort
     let mut numeros_para_procesar=numeros_originales.clone();
+    let inicio = Instant::now();
     radix_sort(&mut numeros_para_procesar);
 
 }
@@ -46,13 +79,16 @@ fn numeros_aleatorios(tam:i32)-> Vec<i32> {
    return numeros;
 }
 
-fn bubble_sort<T: Ord + std::fmt::Debug>(datos: &mut[T]){
+fn bubble_sort<T: Ord + std::fmt::Debug>(datos: &mut[T], stats: &mut Estadisticas){
     println!("Algoritmo ordenamiento burbuja\n");
+    stats.nombre=String::from("Bubble sort");
    let tam= datos.len();
     for i in 0..tam-1{
         for j in 0..tam-1-i{
+            stats.comparaciones += 1;
             if datos[j]>datos[j+1]{
                 datos.swap(j,j+1);
+                stats.intercambios += 1;
             }
             println!("{:?} vuelta {}",datos, i)
         }
@@ -309,4 +345,11 @@ fn counting_sort_por_digito(datos: &mut [i32], exp: i32) {
 
   
     datos.copy_from_slice(&salida);
+}
+
+fn imprimir_stats(estadisticas: &mut Estadisticas){
+    println!("Nombre : {:?}", estadisticas.nombre);
+    println!("Comparaciones: {}", estadisticas.comparaciones);
+    println!("Intercambios: {}", estadisticas.intercambios);
+    println!("Tiempo: {:?}", estadisticas.tiempo);
 }
