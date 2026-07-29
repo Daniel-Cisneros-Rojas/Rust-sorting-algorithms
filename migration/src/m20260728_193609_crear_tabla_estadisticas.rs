@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Estadisticas::Table)
                     .if_not_exists()
+
                     .col(
                         ColumnDef::new(Estadisticas::Id)
                             .integer()
@@ -23,36 +24,64 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
+
                     .col(
-                        ColumnDef::new(Estadisticas::Nombre)
-                            .string_len(100)
+                        ColumnDef::new(Estadisticas::AlgoritmoId)
+                            .integer()
                             .not_null(),
                     )
+
                     .col(
                         ColumnDef::new(Estadisticas::Tiempo)
                             .big_integer()
                             .not_null(),
                     )
+
                     .col(
                         ColumnDef::new(Estadisticas::Comparaciones)
                             .big_integer()
                             .not_null(),
                     )
+
                     .col(
                         ColumnDef::new(Estadisticas::Intercambios)
                             .big_integer()
                             .not_null(),
                     )
+
                     .col(
                         ColumnDef::new(Estadisticas::Escrituras)
                             .big_integer()
                             .not_null(),
                     )
+
                     .col(
                         ColumnDef::new(Estadisticas::CantidadDatos)
                             .integer()
                             .not_null(),
                     )
+                    .col(
+                        ColumnDef::new(Estadisticas::Fecha)
+                            .timestamp()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+)
+
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_estadisticas_algoritmo")
+                            .from(
+                                Estadisticas::Table,
+                                Estadisticas::AlgoritmoId,
+                            )
+                            .to(
+                                Algoritmos::Table,
+                                Algoritmos::Id,
+                            )
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+
                     .to_owned(),
             )
             .await
@@ -65,14 +94,22 @@ impl MigrationTrait for Migration {
     }
 }
 
+
 #[derive(DeriveIden)]
 enum Estadisticas {
     Table,
     Id,
-    Nombre,
+    AlgoritmoId,
     Tiempo,
     Comparaciones,
     Intercambios,
     Escrituras,
     CantidadDatos,
+    Fecha,
+}
+
+#[derive(DeriveIden)]
+enum Algoritmos {
+    Table,
+    Id,
 }
