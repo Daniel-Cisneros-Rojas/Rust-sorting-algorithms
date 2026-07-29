@@ -1,4 +1,5 @@
 use rand::{Rng};
+use std::println;
 use std::time::Duration;
 use std::time::Instant;
 struct Estadisticas {
@@ -7,20 +8,25 @@ struct Estadisticas {
     comparaciones: usize,
     intercambios: usize,
     escrituras: usize,
+    cantidad_datos:i32,
 }
-fn main() {
-
+#[tokio::main]
+async fn main() -> Result<(),Box<dyn std::error::Error>>{
+    
+    
     let mut stats = Estadisticas {
         nombre: " ".to_string(),
         tiempo: Duration::ZERO,
         comparaciones: 0,
         intercambios: 0,
         escrituras:0,
+        cantidad_datos:0,
         
     };
-
+    let cantidad_datos:i32=8;
+    stats.cantidad_datos=cantidad_datos;
     println!("\nAlgoritmos de ordenamiento");
-    let  numeros_originales = numeros_aleatorios(8);
+    let  numeros_originales = numeros_aleatorios(cantidad_datos);
     //let numeros_originales=vec![5, 3, 8, 4, 2,-1];
     println!("\nNúmeros generados aleatoriamente : {:?}\n", numeros_originales);
     
@@ -89,6 +95,10 @@ fn main() {
     radix_sort(&mut numeros_para_procesar, &mut stats);
     stats.tiempo = inicio.elapsed();
     imprimir_stats(&mut stats);
+
+    let conexion=algorithms::obtener_conexion().await?;
+    println!("conectado");
+    Ok(())
 
 }
 
@@ -410,4 +420,5 @@ fn imprimir_stats(estadisticas: &mut Estadisticas){
     println!("Intercambios: {}", estadisticas.intercambios);
     println!("Escrituras: {}", estadisticas.escrituras);
     println!("Tiempo: {:?}", estadisticas.tiempo);
+    println!("Cantidad datos: {}", estadisticas.cantidad_datos);
 }
