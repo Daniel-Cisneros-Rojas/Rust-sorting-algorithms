@@ -2,20 +2,55 @@ use rand::{Rng};
 use std::println;
 use std::time::Duration;
 use std::time::Instant;
+
+mod entities;
+use entities::prelude::*;
+use entities::*;
+use sea_orm::*;
+use sea_orm::prelude::*;
+use tabled::{Table, Tabled};
+
+mod base_datos;
+
 struct Estadisticas {
-    nombre: String,
-    tiempo: Duration,
-    comparaciones: usize,
-    intercambios: usize,
-    escrituras: usize,
-    cantidad_datos:i32,
+    pub algoritmo_id: i32,
+    pub tiempo: Duration,
+    pub comparaciones: usize,
+    pub intercambios: usize,
+    pub escrituras: usize,
+    pub cantidad_datos:i32,
 }
+
+#[derive(Tabled)]
+struct EstadisticaTabla {
+    id: i32,
+    algoritmo: String,
+    tiempo_us: i64,
+    comparaciones: i64,
+    intercambios: i64,
+    escrituras: i64,
+    cantidad_datos: i32,
+    fecha: chrono::NaiveDateTime,
+}
+
+#[repr(i32)]
+enum Algoritmo {
+    Bubble = 1,
+    Selection = 2,
+    Insertion = 3,
+    Merge = 4,
+    Quick = 5,
+    Heap = 6,
+    Counting = 7,
+    Radix = 8,
+}
+
 #[tokio::main]
 async fn main() -> Result<(),Box<dyn std::error::Error>>{
     
     
     let mut stats = Estadisticas {
-        nombre: " ".to_string(),
+        algoritmo_id: 0,
         tiempo: Duration::ZERO,
         comparaciones: 0,
         intercambios: 0,
@@ -23,7 +58,7 @@ async fn main() -> Result<(),Box<dyn std::error::Error>>{
         cantidad_datos:0,
         
     };
-    let cantidad_datos:i32=8;
+    let cantidad_datos:i32=90;
     stats.cantidad_datos=cantidad_datos;
     println!("\nAlgoritmos de ordenamiento");
     let  numeros_originales = numeros_aleatorios(cantidad_datos);
@@ -54,7 +89,7 @@ async fn main() -> Result<(),Box<dyn std::error::Error>>{
     //merge sort
     let mut numeros_para_procesar=numeros_originales.clone();
     println!("Algoritmo ordenamiento por mezcla (Merge sort)\n");
-    stats.nombre=String::from("Merge sort");
+    stats.algoritmo_id = Algoritmo::Merge as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
     stats.escrituras=0;
@@ -66,7 +101,7 @@ async fn main() -> Result<(),Box<dyn std::error::Error>>{
     //quick sort
     let mut numeros_para_procesar=numeros_originales.clone(); 
     println!("Algoritmo ordenamiento Quick sort\n");
-    stats.nombre=String::from("Quick sort");
+    stats.algoritmo_id = Algoritmo::Quick as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
     let inicio = Instant::now();
@@ -96,10 +131,12 @@ async fn main() -> Result<(),Box<dyn std::error::Error>>{
     stats.tiempo = inicio.elapsed();
     imprimir_stats(&mut stats);
 
-    let conexion=algorithms::obtener_conexion().await?;
+    let mut conexion=algorithms::obtener_conexion().await?;
     println!("conectado");
+    //base_datos::guardar_estadisticas(&mut stats, &mut conexion).await?;
+    base_datos::ver_estadisticas_todas(&mut conexion).await?;
     Ok(())
-
+    
 }
 
 fn numeros_aleatorios(tam:i32)-> Vec<i32> {
@@ -114,7 +151,7 @@ fn numeros_aleatorios(tam:i32)-> Vec<i32> {
 
 fn bubble_sort<T: Ord + std::fmt::Debug>(datos: &mut[T], stats: &mut Estadisticas){
     println!("Algoritmo ordenamiento burbuja\n");
-    stats.nombre=String::from("Bubble sort");
+    stats.algoritmo_id = Algoritmo::Bubble as i32;
    let tam= datos.len();
     for i in 0..tam-1{
         for j in 0..tam-1-i{
@@ -132,7 +169,7 @@ fn bubble_sort<T: Ord + std::fmt::Debug>(datos: &mut[T], stats: &mut Estadistica
 
 fn selection_sort<T: Ord + std::fmt::Debug>(datos: &mut[T],stats: &mut Estadisticas){
     println!("Algoritmo ordenamiento selección\n");
-    stats.nombre=String::from("Selection sort");
+    stats.algoritmo_id = Algoritmo::Selection as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
     let tam= datos.len();
@@ -152,7 +189,7 @@ fn selection_sort<T: Ord + std::fmt::Debug>(datos: &mut[T],stats: &mut Estadisti
 
 fn insertion_sort<T: Ord + std::fmt::Debug>(datos: &mut[T],stats: &mut Estadisticas){
     println!("Algoritmo ordenamiento inserción\n");
-    stats.nombre=String::from("Insertion sort");
+    stats.algoritmo_id = Algoritmo::Insertion as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
     let tam= datos.len();
@@ -264,7 +301,7 @@ fn partition<T: Ord + std::fmt::Debug>(datos: &mut [T], stats: &mut Estadisticas
 
 fn heap_sort<T: Ord + std::fmt::Debug>(datos: &mut [T], stats: &mut Estadisticas){
     println!("Algoritmo Heap sort\n");
-    stats.nombre=String::from("Heap sort");
+    stats.algoritmo_id = Algoritmo::Heap as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
    let len = datos.len();
@@ -312,7 +349,7 @@ fn heapify<T: Ord>(datos: &mut [T], n: usize, i: usize, stats: &mut Estadisticas
 fn counting_sort(datos: &mut [i32], stats: &mut Estadisticas){
     let tam=datos.len();
    println!("Algoritmo ordenamiento por conteo\n");
-   stats.nombre=String::from("counting sort");
+   stats.algoritmo_id = Algoritmo::Counting as i32;
    stats.comparaciones = 0;
    stats.intercambios = 0;
    stats.escrituras=0;
@@ -357,7 +394,7 @@ fn maximo_minimo(datos: &mut [i32], stats: &mut Estadisticas)->(usize,usize){
 
 fn radix_sort(datos: &mut [i32], stats: &mut Estadisticas){
     println!("Algoritmo ordenamiento por digitos\n");
-    stats.nombre=String::from("Radix sort");
+    stats.algoritmo_id = Algoritmo::Radix as i32;
     stats.comparaciones = 0;
     stats.intercambios = 0;
     stats.escrituras=0;
@@ -415,10 +452,11 @@ fn counting_sort_por_digito(datos: &mut [i32], exp: i32, stats: &mut Estadistica
 }
 
 fn imprimir_stats(estadisticas: &mut Estadisticas){
-    println!("Nombre : {:?}", estadisticas.nombre);
+    println!("Id algoritmo : {:?}", estadisticas.algoritmo_id);
     println!("Comparaciones: {}", estadisticas.comparaciones);
     println!("Intercambios: {}", estadisticas.intercambios);
     println!("Escrituras: {}", estadisticas.escrituras);
-    println!("Tiempo: {:?}", estadisticas.tiempo);
+    println!("Tiempo (milisegundos) : {:?}", estadisticas.tiempo.as_millis());
     println!("Cantidad datos: {}", estadisticas.cantidad_datos);
+    println!("Hora: {:?}", chrono::Local::now());
 }
