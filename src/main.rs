@@ -5,10 +5,9 @@ use std::time::Instant;
 
 mod entities;
 use entities::prelude::*;
-use entities::*;
 use sea_orm::*;
-use sea_orm::prelude::*;
-use tabled::{Table, Tabled};
+use tabled::{Tabled};
+use std::io::{self, Write};
 
 mod base_datos;
 
@@ -21,17 +20,6 @@ struct Estadisticas {
     pub cantidad_datos:i32,
 }
 
-#[derive(Tabled)]
-struct EstadisticaTabla {
-    id: i32,
-    algoritmo: String,
-    tiempo_us: i64,
-    comparaciones: i64,
-    intercambios: i64,
-    escrituras: i64,
-    cantidad_datos: i32,
-    fecha: chrono::NaiveDateTime,
-}
 
 #[repr(i32)]
 enum Algoritmo {
@@ -49,92 +37,36 @@ enum Algoritmo {
 async fn main() -> Result<(),Box<dyn std::error::Error>>{
     
     
-    let mut stats = Estadisticas {
-        algoritmo_id: 0,
-        tiempo: Duration::ZERO,
-        comparaciones: 0,
-        intercambios: 0,
-        escrituras:0,
-        cantidad_datos:0,
-        
-    };
-    let cantidad_datos:i32=90;
-    stats.cantidad_datos=cantidad_datos;
-    println!("\nAlgoritmos de ordenamiento");
-    let  numeros_originales = numeros_aleatorios(cantidad_datos);
-    //let numeros_originales=vec![5, 3, 8, 4, 2,-1];
-    println!("\nNúmeros generados aleatoriamente : {:?}\n", numeros_originales);
-    
-    //bubble sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    bubble_sort( &mut numeros_para_procesar,&mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+    let mut conexion = algorithms::obtener_conexion().await?;
 
-    //selection sort 
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    selection_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+    loop {
 
-    //insertion sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    insertion_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+        println!("\n==============================");
+        println!(" SISTEMA DE ORDENAMIENTOS");
+        println!("==============================");
+        println!("1. Ejecutar un algoritmo");
+        println!("2. Ejecutar todos");
+        println!("3. Ver estadísticas");
+        println!("4. Salir");
+        println!("==============================");
 
-    //merge sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    println!("Algoritmo ordenamiento por mezcla (Merge sort)\n");
-    stats.algoritmo_id = Algoritmo::Merge as i32;
-    stats.comparaciones = 0;
-    stats.intercambios = 0;
-    stats.escrituras=0;
-    let inicio = Instant::now();
-    merge_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+        let opcion = leer_numero();
 
-    //quick sort
-    let mut numeros_para_procesar=numeros_originales.clone(); 
-    println!("Algoritmo ordenamiento Quick sort\n");
-    stats.algoritmo_id = Algoritmo::Quick as i32;
-    stats.comparaciones = 0;
-    stats.intercambios = 0;
-    let inicio = Instant::now();
-    quick_sort(&mut numeros_para_procesar, &mut stats);
-    println!("Datos ordenados {:?}", numeros_para_procesar);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+        match opcion {
 
-    //heap sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    heap_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+            1 => ejecutar_un_algoritmo(&mut conexion).await?,
 
-    //counting sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    counting_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+            2 => ejecutar_todos(&mut conexion).await?,
 
-    //radix sort
-    let mut numeros_para_procesar=numeros_originales.clone();
-    let inicio = Instant::now();
-    radix_sort(&mut numeros_para_procesar, &mut stats);
-    stats.tiempo = inicio.elapsed();
-    imprimir_stats(&mut stats);
+            3 => menu_estadisticas(&mut conexion).await?,
 
-    let mut conexion=algorithms::obtener_conexion().await?;
-    println!("conectado");
-    //base_datos::guardar_estadisticas(&mut stats, &mut conexion).await?;
-    base_datos::ver_estadisticas_todas(&mut conexion).await?;
+            4 => break,
+
+            _ => println!("Opción inválida")
+
+        }
+    }
+
     Ok(())
     
 }
@@ -459,4 +391,215 @@ fn imprimir_stats(estadisticas: &mut Estadisticas){
     println!("Tiempo (milisegundos) : {:?}", estadisticas.tiempo.as_millis());
     println!("Cantidad datos: {}", estadisticas.cantidad_datos);
     println!("Hora: {:?}", chrono::Local::now());
+}
+
+//menus ejecuciones 
+fn leer_numero() -> i32 {
+
+    loop {
+
+        print!("> ");
+
+        io::stdout().flush().unwrap();
+
+        let mut entrada = String::new();
+
+        io::stdin().read_line(&mut entrada).unwrap();
+
+        match entrada.trim().parse() {
+
+            Ok(numero) => return numero,
+
+            Err(_) => println!("Ingrese un número válido.")
+
+        }
+
+    }
+
+}
+
+async fn ejecutar_un_algoritmo(
+    conexion: &DatabaseConnection,
+) -> Result<(), DbErr> {
+
+    println!();
+    println!("Seleccione algoritmo");
+    println!("1 Bubble");
+    println!("2 Selection");
+    println!("3 Insertion");
+    println!("4 Merge");
+    println!("5 Quick");
+    println!("6 Heap");
+    println!("7 Counting");
+    println!("8 Radix");
+
+    let algoritmo = leer_numero();
+
+    println!("Cantidad de datos:");
+
+    let cantidad = leer_numero();
+
+    println!("Número de repeticiones:");
+
+    let repeticiones = leer_numero();
+
+    for _ in 0..repeticiones {
+
+        ejecutar_algoritmo(
+            algoritmo,
+            cantidad,
+            conexion,
+        ).await?;
+
+    }
+
+    Ok(())
+}
+
+async fn ejecutar_todos(
+    conexion: &DatabaseConnection,
+) -> Result<(), DbErr> {
+
+    println!("Cantidad de datos:");
+
+    let cantidad = leer_numero();
+
+    println!("Número de repeticiones:");
+
+    let repeticiones = leer_numero();
+
+    for _ in 0..repeticiones {
+
+        for algoritmo in 1..=8 {
+
+            ejecutar_algoritmo(
+                algoritmo,
+                cantidad,
+                conexion,
+            ).await?;
+
+        }
+
+    }
+
+    Ok(())
+}
+
+async fn ejecutar_algoritmo(
+
+    algoritmo: i32,
+
+    cantidad: i32,
+
+    conexion: &DatabaseConnection,
+
+) -> Result<(), DbErr> {
+
+    let numeros = numeros_aleatorios(cantidad);
+
+    let mut copia = numeros.clone();
+
+    let mut stats = Estadisticas {
+
+        algoritmo_id: algoritmo,
+
+        tiempo: Duration::ZERO,
+
+        comparaciones: 0,
+
+        intercambios: 0,
+
+        escrituras: 0,
+
+        cantidad_datos: cantidad,
+
+    };
+
+    let inicio = Instant::now();
+
+    match algoritmo {
+
+        1 => bubble_sort(&mut copia, &mut stats),
+
+        2 => selection_sort(&mut copia, &mut stats),
+
+        3 => insertion_sort(&mut copia, &mut stats),
+
+        4 => merge_sort(&mut copia, &mut stats),
+
+        5 => quick_sort(&mut copia, &mut stats),
+
+        6 => heap_sort(&mut copia, &mut stats),
+
+        7 => counting_sort(&mut copia, &mut stats),
+
+        8 => radix_sort(&mut copia, &mut stats),
+
+        _ => {
+            println!("Algoritmo inválido.");
+            return Ok(());
+        }
+
+    }
+
+    stats.tiempo = inicio.elapsed();
+
+    imprimir_stats(&mut stats);
+
+    base_datos::guardar_estadisticas(
+        &mut stats,
+        conexion,
+    )
+    .await?;
+
+    Ok(())
+}
+
+async fn menu_estadisticas(
+    conexion: &DatabaseConnection,
+) -> Result<(), DbErr> {
+
+    loop {
+
+        println!();
+        println!("1 Mostrar todas");
+
+        println!("2 Mostrar por algoritmo");
+
+        println!("3 Regresar");
+
+        let opcion = leer_numero();
+
+        match opcion {
+
+            1 => {
+
+                base_datos::mostrar_estadisticas_todas(conexion)
+                    .await?;
+
+            }
+
+            2 => {
+
+                println!("Ingrese el id del algoritmo:");
+
+                let algoritmo = leer_numero();
+
+                base_datos::mostrar_estadisticas_algoritmo(
+                    conexion,
+                    algoritmo,
+                )
+                .await?;
+
+            }
+
+            3 => break,
+
+            _ => println!("Opción inválida")
+
+        }
+
+    }
+
+    Ok(())
 }
