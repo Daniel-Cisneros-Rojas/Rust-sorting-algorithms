@@ -6,7 +6,7 @@ use tabled::{Table, Tabled};
 struct EstadisticaTabla {
     id: i32,
     algoritmo: String,
-    tiempo_us: i64,
+    tiempo_milisegundos: i64,
     comparaciones: i64,
     intercambios: i64,
     escrituras: i64,
@@ -33,7 +33,7 @@ pub async fn guardar_estadisticas(datos_ingresar: &mut Estadisticas, conexion: &
     Ok(())
 }
 
-pub async fn ver_estadisticas_todas(conexion: &DatabaseConnection)-> Result<(),DbErr>{
+pub async fn mostrar_estadisticas_todas(conexion: &DatabaseConnection)-> Result<(),DbErr>{
     let registros = estadisticas::Entity::find()
         .select_only()
         .column(estadisticas::Column::Id)
@@ -76,7 +76,7 @@ pub async fn ver_estadisticas_todas(conexion: &DatabaseConnection)-> Result<(),D
             )| EstadisticaTabla {
                 id,
                 algoritmo,
-                tiempo_us: tiempo,
+                tiempo_milisegundos: tiempo,
                 comparaciones,
                 intercambios,
                 escrituras,
@@ -88,5 +88,44 @@ pub async fn ver_estadisticas_todas(conexion: &DatabaseConnection)-> Result<(),D
 
     println!("{}", Table::new(tabla));
 
+    Ok(())
+}
+
+pub async fn mostrar_estadisticas_algoritmo(
+    conexion: &DatabaseConnection,
+    id_algoritmo: i32,
+) -> Result<(), DbErr> {
+
+    let registros = estadisticas::Entity::find()
+        .filter(estadisticas::Column::AlgoritmoId.eq(id_algoritmo))
+        .find_also_related(algoritmos::Entity)
+        .all(conexion)
+        .await?;
+        
+        if registros.is_empty() {
+            println!("No existen estadísticas para el algoritmo con id {}.", id_algoritmo);
+            return Ok(());
+        }
+
+    let mut tabla = Vec::new();
+
+    for (estadistica, algoritmo) in registros {
+
+        tabla.push(EstadisticaTabla {
+            id: estadistica.id,
+            algoritmo: algoritmo
+                .map(|a| a.nombre)
+                .unwrap_or_else(|| "Desconocido".to_string()),
+            tiempo_milisegundos: estadistica.tiempo,
+            comparaciones: estadistica.comparaciones,
+            intercambios: estadistica.intercambios,
+            escrituras: estadistica.escrituras,
+            cantidad_datos: estadistica.cantidad_datos,
+            fecha: estadistica.fecha,
+        });
+    }
+    
+      println!("{}", Table::new(tabla));
+    
     Ok(())
 }
